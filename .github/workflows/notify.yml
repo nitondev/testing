@@ -10,8 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Check out the code
+      uses: actions/checkout@v3
+
     - name: Send Discord notification
       run: |
+        SHORT_HASH=$(git log -1 --pretty=format:'%h')
+        REPO_URL=${{ github.server_url }}/${{ github.repository }}
+        COMMIT_URL=$REPO_URL/commit/$SHORT_HASH
         curl -H "Content-Type: application/json" \
-        -d "{\"content\": \"New commit pushed to the repository: $(git log -1 --pretty=format:'%s') by $(git log -1 --pretty=format:'%an').\"}" \
+        -d "{\"content\": \"1 new commit, [$SHORT_HASH]($COMMIT_URL).\"}" \
         ${{ secrets.DISCORD_WEBHOOK_URL }}
