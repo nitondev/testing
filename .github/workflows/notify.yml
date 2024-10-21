@@ -3,7 +3,7 @@ name: Notify Discord on Commit
 on:
   push:
     branches:
-      - main  # Ändra till den gren du vill övervaka
+      - main  # Du kan ändra till den branch du vill övervaka
 
 jobs:
   notify-discord:
@@ -13,23 +13,33 @@ jobs:
     - name: Check out the code
       uses: actions/checkout@v3
 
-    - name: Get repository details
+    - name: Get commit details and send Discord notification
       run: |
         REPO_NAME=$(basename -s .git `git config --get remote.origin.url`)
-        SHORT_HASH=$(git log -1 --pretty=format:'%h')
-        REPO_URL=${{ github.server_url }}/${{ github.repository }}
-        COMMIT_URL=$REPO_URL/commit/$SHORT_HASH
+        BRANCH_NAME=${GITHUB_REF#refs/heads/}
+        COMMIT_HASH=$(git log -1 --pretty=format:'%h')
+        COMMIT_MESSAGE=$(git log -1 --pretty=format:'%s')
+        AUTHOR_NAME=$(git log -1 --pretty=format:'%an')
+        AUTHOR_URL="https://github.com/${{ github.actor }}"
+        AVATAR_URL="https://avatars.githubusercontent.com/u/${{ github.actor_id }}"
+
         DISCORD_MESSAGE="{
           \"content\": null,
           \"embeds\": [
             {
-              \"title\": \"1 new commit.\",
-              \"description\": \"1 new commit in [nitondev/${REPO_NAME}]($REPO_URL) \nCommit Hash: [\`${SHORT_HASH}\`]($COMMIT_URL)\",
-              \"color\": 1275917
+              \"title\": \"[$REPO_NAME:$BRANCH_NAME] 1 new commit.\",
+              \"description\": \"\`$COMMIT_HASH\` $COMMIT_MESSAGE\",
+              \"color\": 938306,
+              \"author\": {
+                \"name\": \"$AUTHOR_NAME\",
+                \"url\": \"$AUTHOR_URL\",
+                \"icon_url\": \"$AVATAR_URL\"
+              }
             }
           ],
           \"attachments\": []
         }"
+
         echo $DISCORD_MESSAGE > message.json
 
     - name: Send Discord notification
