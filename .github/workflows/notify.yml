@@ -3,7 +3,7 @@ name: Notify Discord on Commit
 on:
   push:
     branches:
-      - main  # Du kan ändra till den branch du vill övervaka
+      - main  # Ändra till den branch du vill övervaka
 
 jobs:
   notify-discord:
@@ -19,7 +19,8 @@ jobs:
         BRANCH_NAME=${GITHUB_REF#refs/heads/}
         COMMIT_HASH=$(git log -1 --pretty=format:'%h')
         COMMIT_MESSAGE=$(git log -1 --pretty=format:'%s')
-        AUTHOR_NAME=$(git log -1 --pretty=format:'%an')
+        AUTHOR_USERNAME=${{ github.actor }}  # Hämta GitHub-användarnamnet
+        COMMIT_URL="${{ github.server_url }}/${{ github.repository }}/commit/$COMMIT_HASH"  # URL till commit
         AUTHOR_URL="https://github.com/${{ github.actor }}"
         AVATAR_URL="https://avatars.githubusercontent.com/u/${{ github.actor_id }}"
 
@@ -28,10 +29,11 @@ jobs:
           \"embeds\": [
             {
               \"title\": \"[$REPO_NAME:$BRANCH_NAME] 1 new commit.\",
-              \"description\": \"\`$COMMIT_HASH\` $COMMIT_MESSAGE\",
+              \"url\": \"$COMMIT_URL\",  # Lägg till länk till commit i titeln
+              \"description\": \"[\`$COMMIT_HASH\`]($COMMIT_URL) $COMMIT_MESSAGE\",
               \"color\": 938306,
               \"author\": {
-                \"name\": \"$AUTHOR_NAME\",
+                \"name\": \"$AUTHOR_USERNAME\",
                 \"url\": \"$AUTHOR_URL\",
                 \"icon_url\": \"$AVATAR_URL\"
               }
