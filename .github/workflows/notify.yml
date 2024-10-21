@@ -13,11 +13,27 @@ jobs:
     - name: Check out the code
       uses: actions/checkout@v3
 
-    - name: Send Discord notification
+    - name: Get repository details
       run: |
+        REPO_NAME=$(basename -s .git `git config --get remote.origin.url`)
         SHORT_HASH=$(git log -1 --pretty=format:'%h')
         REPO_URL=${{ github.server_url }}/${{ github.repository }}
         COMMIT_URL=$REPO_URL/commit/$SHORT_HASH
+        DISCORD_MESSAGE="{
+          \"content\": null,
+          \"embeds\": [
+            {
+              \"title\": \"1 new commit.\",
+              \"description\": \"1 new commit in [nitondev/${REPO_NAME}]($REPO_URL) \nCommit Hash: [\`${SHORT_HASH}\`]($COMMIT_URL)\",
+              \"color\": 1275917
+            }
+          ],
+          \"attachments\": []
+        }"
+        echo $DISCORD_MESSAGE > message.json
+
+    - name: Send Discord notification
+      run: |
         curl -H "Content-Type: application/json" \
-        -d "{\"content\": \"1 new commit, [$SHORT_HASH]($COMMIT_URL).\"}" \
+        -d @message.json \
         ${{ secrets.DISCORD_WEBHOOK_URL }}
